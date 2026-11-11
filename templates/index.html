@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt Redactor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1>Prompt Redactor</h1>
+    <p class="sub">Check a prompt for personal information before you paste it into ChatGPT, Gemini or Copilot,
+      then replace it with placeholders or redact it. Runs on this computer only: your text is not sent to any AI or outside service.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- 1. Input -->
+  <section class="card" id="step-input">
+    <h2><span class="num">1</span> Paste your prompt</h2>
+    <textarea id="input" rows="9" spellcheck="false"
+      placeholder="e.g. Sort these customer records by city: Sarah Thompson, sarah.t@example.com, (519) 824-4120 ..."></textarea>
+    <div class="row">
+      <button id="btn-check" class="primary">Check for personal information</button>
+      <button id="btn-sample" class="ghost">Load sample</button>
+      <details class="advanced">
+        <summary>Advanced</summary>
+        <label>Detection method
+          <select id="mode">
+            <option value="hybrid" selected>Hybrid (rules + NER)</option>
+            <option value="rules">Rules only</option>
+            <option value="ner">NER only</option>
+          </select>
+        </label>
+        <label>Sensitivity threshold <output id="th-out">0.40</output>
+          <input type="range" id="threshold" min="0.1" max="0.9" step="0.05" value="0.4">
+        </label>
+      </details>
+    </div>
+  </section>
+
+  <!-- 2. Review -->
+  <section class="card hidden" id="step-review">
+    <h2><span class="num">2</span> Review what was found</h2>
+    <div id="banner" class="banner"></div>
+    <p class="hint">Click a highlight to keep it as-is. To protect something we missed, select the text and choose a type.</p>
+    <div class="review-grid">
+      <div id="highlighted" class="highlighted" aria-live="polite"></div>
+      <aside>
+        <ul id="det-list" class="det-list"></ul>
+      </aside>
+    </div>
+    <div id="add-bar" class="add-bar hidden">
+      <span>Mark “<b id="sel-text"></b>” as</span>
+      <select id="add-type">
+        {% for e in entities %}<option value="{{ e }}">{{ labels[e] }}</option>{% endfor %}
+        <option value="LOCATION">{{ labels["LOCATION"] }}</option>
+        <option value="OTHER">{{ labels["OTHER"] }}</option>
+      </select>
+      <button id="btn-add" class="small">Add</button>
+      <button id="btn-add-cancel" class="small ghost">Cancel</button>
+    </div>
+    <fieldset class="method">
+      <legend>How should the selected items be replaced?</legend>
+      <label class="opt">
+        <input type="radio" name="method" value="pseudonymize" checked>
+        <span><b>Pseudonymize</b>: replace each item with a typed placeholder used consistently,
+          e.g. Sarah Thompson → [PERSON_1] everywhere, her email → [EMAIL_1]. The AI can still tell people apart,
+          and you can put the real details back into its answer.</span>
+      </label>
+      <label class="opt">
+        <input type="radio" name="method" value="redact">
+        <span><b>Fully redact</b>: replace every item with the same token, [REDACTED].
+          Reveals the least, but the AI can't tell what each item was or who is who, and nothing can be restored.</span>
+      </label>
+      <details class="extra">
+        <summary>Extra option (not part of the main comparison)</summary>
+        <label class="opt">
+          <input type="radio" name="method" value="surrogate">
+          <span><b>Realistic fake values</b>: e.g. Sarah Thompson → Emily Clark, using emails, phone numbers and IDs that
+            can't belong to a real person. Restorable.</span>
+        </label>
+      </details>
+    </fieldset>
+    <div class="row">
+      <button id="btn-redact" class="primary">Create safer prompt</button>
+    </div>
+  </section>
+
+  <!-- 3. Output -->
+  <section class="card hidden" id="step-output">
+    <h2><span class="num">3</span> Your safer prompt</h2>
+    <p id="method-note" class="hint"></p>
+    <textarea id="output" rows="8" readonly></textarea>
+    <div class="row">
+      <button id="btn-copy" class="primary">Copy prompt</button>
+      <span id="copied" class="ok-text hidden">Copied</span>
+    </div>
+    <details class="key">
+      <summary>Replacement key (kept in this browser tab only)</summary>
+      <table id="mapping"></table>
+    </details>
+  </section>
+
+  <!-- 4. Restore -->
+  <section class="card hidden" id="step-restore">
+    <h2><span class="num">4</span> Optional: put the details back into the AI's answer</h2>
+    <p class="hint">Paste the AI's reply. Placeholders (or fake values) are swapped back to the real ones in this tab; nothing is sent anywhere.
+      Check the result: if the AI changed a placeholder or fake value, that part can't be swapped back.</p>
+    <textarea id="reply" rows="6" placeholder="Paste the AI's reply here"></textarea>
+    <textarea id="restored" rows="6" readonly placeholder="Restored reply appears here"></textarea>
+  </section>
+</main>
+
+<footer class="wrap foot">CIS*6550 project prototype · synthetic data only during testing</footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

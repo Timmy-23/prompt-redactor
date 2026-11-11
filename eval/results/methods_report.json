@@ -1,0 +1,366 @@
+{
+ "gold": {
+  "redact": {
+   "leak": [
+    0,
+    1738
+   ],
+   "leak_ent:ACCOUNT_ID": [
+    0,
+    236
+   ],
+   "leak_type:data": [
+    0,
+    809
+   ],
+   "leak_ent:PERSON": [
+    0,
+    642
+   ],
+   "leak_ent:EMAIL_ADDRESS": [
+    0,
+    275
+   ],
+   "type": [
+    0,
+    1738
+   ],
+   "count": [
+    0,
+    287
+   ],
+   "links": [
+    0,
+    45
+   ],
+   "apart": [
+    0,
+    209
+   ],
+   "apart_type:data": [
+    0,
+    73
+   ],
+   "restored": [
+    0,
+    330
+   ],
+   "leak_type:summarize": [
+    0,
+    442
+   ],
+   "apart_type:summarize": [
+    0,
+    60
+   ],
+   "leak_type:draft": [
+    0,
+    332
+   ],
+   "leak_ent:CREDIT_CARD": [
+    0,
+    61
+   ],
+   "leak_ent:PHONE_NUMBER": [
+    0,
+    255
+   ],
+   "apart_type:draft": [
+    0,
+    51
+   ],
+   "leak_type:advice": [
+    0,
+    155
+   ],
+   "leak_ent:STREET_ADDRESS": [
+    0,
+    118
+   ],
+   "apart_type:advice": [
+    0,
+    25
+   ],
+   "leak_ent:CA_POSTAL_CODE": [
+    0,
+    86
+   ],
+   "leak_ent:CA_SIN": [
+    0,
+    65
+   ]
+  },
+  "pseudonymize": {
+   "leak": [
+    0,
+    1738
+   ],
+   "leak_ent:ACCOUNT_ID": [
+    0,
+    236
+   ],
+   "leak_type:data": [
+    0,
+    809
+   ],
+   "leak_ent:PERSON": [
+    0,
+    642
+   ],
+   "leak_ent:EMAIL_ADDRESS": [
+    0,
+    275
+   ],
+   "type": [
+    1738,
+    1738
+   ],
+   "count": [
+    287,
+    287
+   ],
+   "links": [
+    45,
+    45
+   ],
+   "apart": [
+    209,
+    209
+   ],
+   "apart_type:data": [
+    73,
+    73
+   ],
+   "restored": [
+    330,
+    330
+   ],
+   "leak_type:summarize": [
+    0,
+    442
+   ],
+   "apart_type:summarize": [
+    60,
+    60
+   ],
+   "leak_type:draft": [
+    0,
+    332
+   ],
+   "leak_ent:CREDIT_CARD": [
+    0,
+    61
+   ],
+   "leak_ent:PHONE_NUMBER": [
+    0,
+    255
+   ],
+   "apart_type:draft": [
+    51,
+    51
+   ],
+   "leak_type:advice": [
+    0,
+    155
+   ],
+   "leak_ent:STREET_ADDRESS": [
+    0,
+    118
+   ],
+   "apart_type:advice": [
+    25,
+    25
+   ],
+   "leak_ent:CA_POSTAL_CODE": [
+    0,
+    86
+   ],
+   "leak_ent:CA_SIN": [
+    0,
+    65
+   ]
+  }
+ },
+ "hybrid": {
+  "redact": {
+   "leak": [
+    90,
+    1738
+   ],
+   "leak_ent:ACCOUNT_ID": [
+    0,
+    236
+   ],
+   "leak_type:data": [
+    60,
+    809
+   ],
+   "leak_ent:PERSON": [
+    90,
+    642
+   ],
+   "leak_ent:EMAIL_ADDRESS": [
+    0,
+    275
+   ],
+   "type": [
+    0,
+    1660
+   ],
+   "count": [
+    0,
+    280
+   ],
+   "links": [
+    0,
+    37
+   ],
+   "apart": [
+    0,
+    209
+   ],
+   "apart_type:data": [
+    0,
+    73
+   ],
+   "restored": [
+    0,
+    330
+   ],
+   "leak_type:summarize": [
+    16,
+    442
+   ],
+   "apart_type:summarize": [
+    0,
+    60
+   ],
+   "leak_type:draft": [
+    10,
+    332
+   ],
+   "leak_ent:CREDIT_CARD": [
+    0,
+    61
+   ],
+   "leak_ent:PHONE_NUMBER": [
+    0,
+    255
+   ],
+   "apart_type:draft": [
+    0,
+    51
+   ],
+   "leak_type:advice": [
+    4,
+    155
+   ],
+   "leak_ent:STREET_ADDRESS": [
+    0,
+    118
+   ],
+   "apart_type:advice": [
+    0,
+    25
+   ],
+   "leak_ent:CA_POSTAL_CODE": [
+    0,
+    86
+   ],
+   "leak_ent:CA_SIN": [
+    0,
+    65
+   ]
+  },
+  "pseudonymize": {
+   "leak": [
+    90,
+    1738
+   ],
+   "leak_ent:ACCOUNT_ID": [
+    0,
+    236
+   ],
+   "leak_type:data": [
+    60,
+    809
+   ],
+   "leak_ent:PERSON": [
+    90,
+    642
+   ],
+   "leak_ent:EMAIL_ADDRESS": [
+    0,
+    275
+   ],
+   "type": [
+    1660,
+    1660
+   ],
+   "count": [
+    280,
+    280
+   ],
+   "links": [
+    37,
+    37
+   ],
+   "apart": [
+    209,
+    209
+   ],
+   "apart_type:data": [
+    73,
+    73
+   ],
+   "restored": [
+    330,
+    330
+   ],
+   "leak_type:summarize": [
+    16,
+    442
+   ],
+   "apart_type:summarize": [
+    60,
+    60
+   ],
+   "leak_type:draft": [
+    10,
+    332
+   ],
+   "leak_ent:CREDIT_CARD": [
+    0,
+    61
+   ],
+   "leak_ent:PHONE_NUMBER": [
+    0,
+    255
+   ],
+   "apart_type:draft": [
+    51,
+    51
+   ],
+   "leak_type:advice": [
+    4,
+    155
+   ],
+   "leak_ent:STREET_ADDRESS": [
+    0,
+    118
+   ],
+   "apart_type:advice": [
+    25,
+    25
+   ],
+   "leak_ent:CA_POSTAL_CODE": [
+    0,
+    86
+   ],
+   "leak_ent:CA_SIN": [
+    0,
+    65
+   ]
+  }
+ }
+}

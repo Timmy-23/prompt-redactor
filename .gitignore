@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Utility test output (regenerate with eval/utility.py)
+eval/results/utility/
+
+# Editor / OS
+.vscode/
+.DS_Store
+Thumbs.db

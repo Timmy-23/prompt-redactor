@@ -1,0 +1,4 @@
+# Extra packages for the utility evaluation (eval/utility.py).
+# The app and the other evaluation scripts don't need these.
+sentence-transformers>=3.0
+bert-score>=0.3.13
