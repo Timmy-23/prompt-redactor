@@ -19,9 +19,11 @@ Deadline: final report, prototype and presentation Dec 10, 2026.
 - Privacy metrics (`eval/compare_methods.py`): residual leakage by prompt/entity type; what each format reveals (item types, number of people, same-person links); people kept apart; restore. Perfect (gold) vs pipeline (hybrid) detection.
 - Utility (`eval/utility.py`): local LLM via Ollama answers original / redacted / pseudonymized prompts; semantic similarity to the original answer (sentence-transformers default, BERTScore optional) by prompt type, entity type and 2+ people; blind rubric ratings on a subset (`eval/RUBRIC.md`).
 
+- User evaluation (added after proposal feedback "add user evaluation and report their feedback"): `python app.py --study`; tasks in `study/tasks.json` (T0 practice, T1/T2 counterbalanced methods, T3 free choice; each of T1-T3 has one planted miss); `study/recorder.py` writes counts/timings only to `study_data/sessions.csv` (git-ignored); `study/analyze.py` summarises with the questionnaire CSV. Kit document: User_Evaluation_Kit.docx in the course folder.
+
 ## Rules
 - Use SYNTHETIC data only. Never add real personal information to test data, fixtures, logs or commits.
-- Don't add logging of prompt text, analytics or any external calls (including CDNs) to the app.
+- Don't add logging of prompt text, analytics or any external calls (including CDNs) to the app. Study mode must keep storing counts only.
 - After changing detector or transform code, run `python -m pytest -q`, `python eval/evaluate.py` and `python eval/compare_methods.py`, and compare with the baseline below.
 
 ## Baseline (400 prompts, 1,738 items, seed 6550, threshold 0.4)
@@ -31,6 +33,7 @@ Privacy: both methods leak 5% (pipeline) / 0% (perfect). Redaction reveals no ty
 Utility: not run yet.
 
 ## Next steps
+0. Run the user study (6-10 participants) once Dr. Dara confirms ethics.
 1. Run `eval/utility.py --n 60 --model llama3.1:8b` on the laptop; rate the blind subset with two raters; `--score`.
 2. Improve name recall (en_core_web_trf, context rules), re-check fairness by origin.
 3. Threshold sweep (0.2–0.8).

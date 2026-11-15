@@ -1,0 +1,67 @@
+{
+  "_about": "Tasks for the user evaluation. All personal details are synthetic. 'planted' marks a detail the detector is known to miss (a lowercase first name, a date of birth, a health detail), so the study can measure whether participants catch misses during review. 'method' is 'assigned' when the method is set by participant number (counterbalanced), or 'choice' when the participant picks.",
+  "tasks": [
+    {
+      "id": "T0",
+      "title": "Practice",
+      "method": "choice",
+      "instructions": "Practice task. You want an AI assistant to make this message sound more professional. Use the tool to protect the personal details, then create the safer prompt.",
+      "prompt": "Can you make this sound more professional? Hi Megan Clarke, thanks for your call. I'll send the form to megan.clarke@example.com today. Call me back at (519) 836-2291 if anything is missing.",
+      "gold": [
+        {"type": "PERSON", "value": "Megan Clarke"},
+        {"type": "EMAIL_ADDRESS", "value": "megan.clarke@example.com"},
+        {"type": "PHONE_NUMBER", "value": "(519) 836-2291"}
+      ]
+    },
+    {
+      "id": "T1",
+      "title": "Shift swap email",
+      "method": "assigned",
+      "instructions": "You want an AI assistant to write an email to your manager. Make sure no personal details reach the AI, then create the safer prompt and paste it into the AI assistant.",
+      "prompt": "Write a short, polite email to my manager Karen Liu asking if I can swap my Friday shift with Tomás Rivera. Tomás already agreed. Karen can reach me at 226-904-1187 or jordan.ellis@example.org. Sign it from me, Jordan Ellis. cc priya too, she covers fridays.",
+      "gold": [
+        {"type": "PERSON", "value": "Karen Liu"},
+        {"type": "PERSON", "value": "Tomás Rivera"},
+        {"type": "PHONE_NUMBER", "value": "226-904-1187"},
+        {"type": "EMAIL_ADDRESS", "value": "jordan.ellis@example.org"},
+        {"type": "PERSON", "value": "Jordan Ellis"},
+        {"type": "PERSON", "value": "priya", "planted": true, "why": "lowercase first name"}
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Support tickets",
+      "method": "assigned",
+      "instructions": "You want an AI assistant to summarize these support tickets and say which customer to call first. Make sure no personal details reach the AI, then create the safer prompt and paste it into the AI assistant.",
+      "prompt": "Summarize these support tickets and tell me which customer to call first:\n1. Adebayo Okonkwo (CUST-204118), card 4532 0151 1283 0366 charged twice, phone 905-771-3020\n2. Siobhan Murphy (CUST-209874), parcel to 41 Gordon St, Guelph ON N1H 4H6 never arrived\n3. Wei Zhang (CUST-213302, born March 3, 1994) asked to close the account and wants confirmation by email",
+      "gold": [
+        {"type": "PERSON", "value": "Adebayo Okonkwo"},
+        {"type": "ACCOUNT_ID", "value": "CUST-204118"},
+        {"type": "CREDIT_CARD", "value": "4532 0151 1283 0366"},
+        {"type": "PHONE_NUMBER", "value": "905-771-3020"},
+        {"type": "PERSON", "value": "Siobhan Murphy"},
+        {"type": "ACCOUNT_ID", "value": "CUST-209874"},
+        {"type": "STREET_ADDRESS", "value": "41 Gordon St"},
+        {"type": "CA_POSTAL_CODE", "value": "N1H 4H6"},
+        {"type": "PERSON", "value": "Wei Zhang"},
+        {"type": "ACCOUNT_ID", "value": "CUST-213302"},
+        {"type": "OTHER", "value": "March 3, 1994", "planted": true, "why": "date of birth (not detected automatically)"}
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Deposit advice",
+      "method": "choice",
+      "instructions": "You want advice from an AI assistant. This time, choose whichever method you prefer. Make sure no personal details reach the AI, then create the safer prompt and paste it into the AI assistant.",
+      "prompt": "I'm Daniel Kowalski and my landlord Harjit Sandhu still hasn't returned my deposit for 12 Elm Crescent, Unit 4, Toronto ON M4W 1N4. I was diagnosed with Crohn's disease last year, so I can't easily go to the office in person. My SIN is 130 692 544 if it matters for the tenant board. What should I do?",
+      "gold": [
+        {"type": "PERSON", "value": "Daniel Kowalski"},
+        {"type": "PERSON", "value": "Harjit Sandhu"},
+        {"type": "STREET_ADDRESS", "value": "12 Elm Crescent"},
+        {"type": "CA_POSTAL_CODE", "value": "M4W 1N4"},
+        {"type": "OTHER", "value": "Crohn's disease", "planted": true, "why": "health detail (not detected automatically)"},
+        {"type": "CA_SIN", "value": "130 692 544"}
+      ]
+    }
+  ]
+}

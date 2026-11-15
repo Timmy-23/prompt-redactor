@@ -11,3 +11,6 @@ eval/results/utility/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# User-study data (participant responses): keep off GitHub
+study_data/

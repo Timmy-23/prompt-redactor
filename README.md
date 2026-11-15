@@ -72,6 +72,14 @@ python eval/utility.py --n 60 --model llama3.1:8b
 
 For each sampled prompt (an equal number per prompt type), the model answers the original, redacted and pseudonymized versions. The script then measures how similar each answer is to the answer to the original. Pseudonymized answers are scored after the real details are put back. Results are broken down by prompt type, by entity type, and by prompts with two or more people (`utility_report.md`). The script also writes a shuffled, blind `ratings.csv` for rubric ratings on a subset (`eval/RUBRIC.md`). After rating, run `python eval/utility.py --score`. Use `--similarity bertscore` for BERTScore, `--detections gold` to isolate the method from detection errors, and `--methods redact pseudonymize surrogate` to add the extra condition.
 
+## User evaluation (study mode)
+
+Added after the proposal feedback. Start the app with `python app.py --study` to show a study bar (participant ID, task, Start/Finish). It loads four synthetic tasks from `study/tasks.json`. Three of them contain a detail the detector misses on purpose (a lowercase name, a date of birth, a health detail). It assigns the method for T1/T2 by participant number (counterbalanced) and appends one row per task to `study_data/sessions.csv`.
+
+The CSV holds **counts, timings and choices only**: items detected, unticked and added, method used, details still exposed, whether the planted detail was caught, and whether copy and restore were used. Prompt text is never stored.
+
+Put questionnaire answers in `study_data/questionnaire.csv` (columns as in `study/questionnaire_template.csv`), then run `python study/analyze.py` to get `study_data/study_report.md`: task success, planted misses caught, ratings by method, preference, SUS and open answers. `study_data/` is excluded from Git. The protocol, consent text and questionnaires are in the separate User Evaluation Kit document.
+
 ## How it works
 
 | File | What it does |
@@ -84,6 +92,7 @@ For each sampled prompt (an equal number per prompt type), the model answers the
 | `eval/generate.py` | Synthetic prompts in four everyday task types (draft, summarize, advice, data) plus clean prompts with decoys, using fake data from Faker. Names come from six locales so name recall can be compared by origin |
 | `eval/evaluate.py` | Detection: precision, recall and F1 per entity and prompt type; leakage; false alarms; name recall by origin |
 | `eval/compare_methods.py` | Privacy: residual leakage by prompt and entity type; what each format reveals (types, number of people, same-person links); people kept apart; restore success. Perfect vs pipeline detection |
+| `study/` | Study mode: tasks, recorder (counts only) and analysis script |
 | `eval/utility.py` + `eval/RUBRIC.md` | Utility: answer similarity by prompt type, entity type and number of people; blind rubric ratings |
 
 Entities in scope: names, emails, phone numbers, SINs, payment card numbers, postal codes, street addresses, and account/customer/patient/student IDs. Cities are **not** detected automatically (too many false alarms). Users can mark them by hand, and they are listed as a residual risk.
@@ -115,6 +124,7 @@ Leakage is identical because both methods share one detector. The privacy differ
 
 ## Next steps
 
+- Run the user evaluation (confirm ethics with Dr. Dara first).
 - Run the utility test with Ollama, then rate the blind subset with two raters.
 - Improve name recall (`en_core_web_trf`, context rules), then re-check fairness by origin.
 - Threshold sweep: `evaluate.py --threshold` at 0.2–0.8.

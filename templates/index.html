@@ -16,6 +16,17 @@
 </header>
 
 <main class="wrap">
+  {% if study %}
+  <section class="card study" id="study-bar">
+    <div class="row study-row">
+      <b>Study session</b>
+      <label>Participant <input id="study-pid" value="P01" size="5"></label>
+      <label>Task <select id="study-task"></select></label>
+      <button id="study-load" class="primary small">Start task</button>
+    </div>
+    <p id="study-instr" class="study-instr hidden"></p>
+  </section>
+  {% endif %}
   <!-- 1. Input -->
   <section class="card" id="step-input">
     <h2><span class="num">1</span> Paste your prompt</h2>
@@ -113,6 +124,14 @@
   </section>
 </main>
 
+{% if study %}
+<section class="wrap"><div class="card study hidden" id="study-finish">
+  <p class="hint">When you have pasted the safer prompt into the AI assistant (and restored its answer, if you used pseudonymization), click Finish.</p>
+  <button id="study-done" class="primary">Finish task</button>
+  <span id="study-saved" class="ok-text hidden">Saved. Please return to the moderator.</span>
+</div></section>
+<script>window.STUDY = true;</script>
+{% endif %}
 <footer class="wrap foot">CIS*6550 project prototype · synthetic data only during testing</footer>
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

@@ -74,3 +74,9 @@ mark .tag { font: 600 10px/1 system-ui, sans-serif; text-transform: uppercase; l
 .method .extra { margin-top: 4px; font-size: 13px; color: var(--muted); }
 .method .extra summary { cursor: pointer; padding: 4px 0; }
 .method .extra .opt { color: var(--ink); }
+.study { border-color: var(--accent); }
+.study-row { margin-top: 0; }
+.study-row label { display: flex; gap: 6px; align-items: center; font-size: 13.5px; }
+.study-row input { font: inherit; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--ink); }
+.study-instr { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--bg); }
+.method .opt.locked { opacity: 0.45; }

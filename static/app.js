@@ -189,3 +189,82 @@ $("btn-add-cancel").addEventListener("click", () => { pending = null; show("add-
 $("btn-redact").addEventListener("click", doRedact);
 $("btn-copy").addEventListener("click", copyOut);
 $("reply").addEventListener("input", restore);
+
+
+// --- study mode (python app.py --study) ---------------------------------------
+// Records counts, timings and choices only. The protected prompt is sent once so
+// the server can count which known details are still visible; it is not stored.
+if (window.STUDY) {
+  const S = { task: null, t0: 0, tCheck: 0, tCreate: 0, checks: 0, copied: false, restore: false };
+  $("btn-sample").classList.add("hidden");
+  document.querySelector(".advanced").classList.add("hidden");
+  document.querySelector(".method .extra").classList.add("hidden");
+
+  async function loadTasks() {
+    const pid = $("study-pid").value.trim() || "P01";
+    const res = await fetch(`/api/study/tasks?participant=${encodeURIComponent(pid)}`);
+    S.tasks = (await res.json()).tasks;
+    const cur = $("study-task").value;
+    $("study-task").innerHTML = S.tasks.map((t) => `<option value="${t.id}">${t.id}: ${esc(t.title)}</option>`).join("");
+    if (cur) $("study-task").value = cur;
+  }
+  $("study-pid").addEventListener("change", loadTasks);
+  loadTasks();
+
+  $("study-load").addEventListener("click", async () => {
+    await loadTasks();
+    const t = S.tasks.find((x) => x.id === $("study-task").value);
+    Object.assign(S, { task: t, t0: performance.now(), tCheck: 0, tCreate: 0, checks: 0, copied: false, restore: false });
+    $("input").value = t.prompt;
+    resetAfter(1);
+    let instr = t.instructions;
+    document.querySelectorAll('input[name="method"]').forEach((r) => {
+      const locked = t.method !== "choice" && r.value !== t.method;
+      r.disabled = locked;
+      r.closest(".opt").classList.toggle("locked", locked);
+      if (t.method !== "choice" && r.value === t.method) r.checked = true;
+    });
+    if (t.method === "choice") {
+      document.querySelectorAll('input[name="method"]').forEach((r) => (r.checked = false));
+    } else {
+      instr += ` For this task, use ${t.method === "redact" ? "Fully redact" : "Pseudonymize"}.`;
+    }
+    $("study-instr").textContent = instr;
+    show("study-instr"); show("study-finish"); show("study-saved", false);
+    $("study-done").disabled = false;
+    $("step-input").scrollIntoView({ behavior: "smooth" });
+  });
+
+  $("btn-check").addEventListener("click", () => { S.checks += 1; S.tCheck = performance.now(); }, true);
+  $("btn-redact").addEventListener("click", (e) => {
+    if (!document.querySelector('input[name="method"]:checked')) {
+      e.stopImmediatePropagation(); alert("Please choose a method first."); return;
+    }
+    S.tCreate = performance.now();
+  }, true);
+  $("btn-copy").addEventListener("click", () => { S.copied = true; });
+  $("reply").addEventListener("input", () => { if ($("reply").value.trim()) S.restore = true; });
+
+  $("study-done").addEventListener("click", async () => {
+    if (!S.task) return;
+    const method = document.querySelector('input[name="method"]:checked');
+    const dets = state.dets || [];
+    const body = {
+      participant: $("study-pid").value.trim(), task: S.task.id,
+      method_used: $("output").value ? (method ? method.value : "") : "none",
+      seconds_total: (performance.now() - S.t0) / 1000,
+      seconds_review: S.tCheck && S.tCreate ? (S.tCreate - S.tCheck) / 1000 : 0,
+      checks: S.checks,
+      n_detected: dets.filter((d) => d.source !== "user").length,
+      n_unticked: dets.filter((d) => !d.on).length,
+      n_added: dets.filter((d) => d.source === "user").length,
+      added_types: dets.filter((d) => d.source === "user").map((d) => d.entity),
+      final_text: $("output").value || $("input").value,
+      copied: S.copied, restore_used: S.restore,
+    };
+    await post("/api/study/record", body);
+    $("study-done").disabled = true;
+    show("study-saved");
+    S.task = null;
+  });
+}
