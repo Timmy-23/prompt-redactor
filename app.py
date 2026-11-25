@@ -9,6 +9,7 @@ never sent to an external service. Nothing is written to disk or logged.
 """
 import argparse
 import logging
+from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 
@@ -22,9 +23,16 @@ app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB of text is plenty
 logging.getLogger("werkzeug").setLevel(logging.ERROR)
 
 
+def _asset_version():
+    """Changes whenever style.css or app.js changes, so browsers don't reuse an old cached copy."""
+    static = Path(app.static_folder)
+    return int(max((static / f).stat().st_mtime for f in ("style.css", "app.js")))
+
+
 @app.get("/")
 def index():
-    return render_template("index.html", labels=LABELS, entities=ENTITIES, modes=MODES, study=app.config["STUDY"])
+    return render_template("index.html", labels=LABELS, entities=ENTITIES, modes=MODES, study=app.config["STUDY"],
+                           v=_asset_version())
 
 
 @app.post("/api/analyze")

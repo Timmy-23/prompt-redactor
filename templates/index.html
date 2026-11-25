@@ -1,138 +1,252 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Prompt Redactor</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script>try { var t = localStorage.getItem("pr-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=v) }}">
 </head>
-<body>
-<header class="top">
-  <div class="wrap">
-    <h1>Prompt Redactor</h1>
-    <p class="sub">Check a prompt for personal information before you paste it into ChatGPT, Gemini or Copilot,
-      then replace it with placeholders or redact it. Runs on this computer only: your text is not sent to any AI or outside service.</p>
+<body class="{{ 'study' if study else '' }}">
+
+<nav class="nav"><div class="wrap">
+  <div class="brand" id="brand" title="Back to top">
+    <span class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+    Prompt Redactor
   </div>
-</header>
-
-<main class="wrap">
-  {% if study %}
-  <section class="card study" id="study-bar">
-    <div class="row study-row">
-      <b>Study session</b>
-      <label>Participant <input id="study-pid" value="P01" size="5"></label>
-      <label>Task <select id="study-task"></select></label>
-      <button id="study-load" class="primary small">Start task</button>
-    </div>
-    <p id="study-instr" class="study-instr hidden"></p>
-  </section>
-  {% endif %}
-  <!-- 1. Input -->
-  <section class="card" id="step-input">
-    <h2><span class="num">1</span> Paste your prompt</h2>
-    <textarea id="input" rows="9" spellcheck="false"
-      placeholder="e.g. Sort these customer records by city: Sarah Thompson, sarah.t@example.com, (519) 824-4120 ..."></textarea>
-    <div class="row">
-      <button id="btn-check" class="primary">Check for personal information</button>
-      <button id="btn-sample" class="ghost">Load sample</button>
-      <details class="advanced">
-        <summary>Advanced</summary>
-        <label>Detection method
-          <select id="mode">
-            <option value="hybrid" selected>Hybrid (rules + NER)</option>
-            <option value="rules">Rules only</option>
-            <option value="ner">NER only</option>
-          </select>
-        </label>
-        <label>Sensitivity threshold <output id="th-out">0.40</output>
-          <input type="range" id="threshold" min="0.1" max="0.9" step="0.05" value="0.4">
-        </label>
-      </details>
-    </div>
-  </section>
-
-  <!-- 2. Review -->
-  <section class="card hidden" id="step-review">
-    <h2><span class="num">2</span> Review what was found</h2>
-    <div id="banner" class="banner"></div>
-    <p class="hint">Click a highlight to keep it as-is. To protect something we missed, select the text and choose a type.</p>
-    <div class="review-grid">
-      <div id="highlighted" class="highlighted" aria-live="polite"></div>
-      <aside>
-        <ul id="det-list" class="det-list"></ul>
-      </aside>
-    </div>
-    <div id="add-bar" class="add-bar hidden">
-      <span>Mark “<b id="sel-text"></b>” as</span>
-      <select id="add-type">
-        {% for e in entities %}<option value="{{ e }}">{{ labels[e] }}</option>{% endfor %}
-        <option value="LOCATION">{{ labels["LOCATION"] }}</option>
-        <option value="OTHER">{{ labels["OTHER"] }}</option>
-      </select>
-      <button id="btn-add" class="small">Add</button>
-      <button id="btn-add-cancel" class="small ghost">Cancel</button>
-    </div>
-    <fieldset class="method">
-      <legend>How should the selected items be replaced?</legend>
-      <label class="opt">
-        <input type="radio" name="method" value="pseudonymize" checked>
-        <span><b>Pseudonymize</b>: replace each item with a typed placeholder used consistently,
-          e.g. Sarah Thompson → [PERSON_1] everywhere, her email → [EMAIL_1]. The AI can still tell people apart,
-          and you can put the real details back into its answer.</span>
-      </label>
-      <label class="opt">
-        <input type="radio" name="method" value="redact">
-        <span><b>Fully redact</b>: replace every item with the same token, [REDACTED].
-          Reveals the least, but the AI can't tell what each item was or who is who, and nothing can be restored.</span>
-      </label>
-      <details class="extra">
-        <summary>Extra option (not part of the main comparison)</summary>
-        <label class="opt">
-          <input type="radio" name="method" value="surrogate">
-          <span><b>Realistic fake values</b>: e.g. Sarah Thompson → Emily Clark, using emails, phone numbers and IDs that
-            can't belong to a real person. Restorable.</span>
-        </label>
-      </details>
-    </fieldset>
-    <div class="row">
-      <button id="btn-redact" class="primary">Create safer prompt</button>
-    </div>
-  </section>
-
-  <!-- 3. Output -->
-  <section class="card hidden" id="step-output">
-    <h2><span class="num">3</span> Your safer prompt</h2>
-    <p id="method-note" class="hint"></p>
-    <textarea id="output" rows="8" readonly></textarea>
-    <div class="row">
-      <button id="btn-copy" class="primary">Copy prompt</button>
-      <span id="copied" class="ok-text hidden">Copied</span>
-    </div>
-    <details class="key">
-      <summary>Replacement key (kept in this browser tab only)</summary>
-      <table id="mapping"></table>
-    </details>
-  </section>
-
-  <!-- 4. Restore -->
-  <section class="card hidden" id="step-restore">
-    <h2><span class="num">4</span> Optional: put the details back into the AI's answer</h2>
-    <p class="hint">Paste the AI's reply. Placeholders (or fake values) are swapped back to the real ones in this tab; nothing is sent anywhere.
-      Check the result: if the AI changed a placeholder or fake value, that part can't be swapped back.</p>
-    <textarea id="reply" rows="6" placeholder="Paste the AI's reply here"></textarea>
-    <textarea id="restored" rows="6" readonly placeholder="Restored reply appears here"></textarea>
-  </section>
-</main>
+  <a class="nav-links" href="#workspace">Check a prompt</a>
+  <a class="nav-links" href="#features">How it works</a>
+  <span class="pill"><span class="dot"></span>Running locally · 127.0.0.1</span>
+  <button class="theme-btn" id="theme" aria-label="Switch light/dark theme" title="Switch light/dark theme">
+    <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+  </button>
+</div></nav>
 
 {% if study %}
-<section class="wrap"><div class="card study hidden" id="study-finish">
-  <p class="hint">When you have pasted the safer prompt into the AI assistant (and restored its answer, if you used pseudonymization), click Finish.</p>
-  <button id="study-done" class="primary">Finish task</button>
-  <span id="study-saved" class="ok-text hidden">Saved. Please return to the moderator.</span>
-</div></section>
-<script>window.STUDY = true;</script>
+<!-- Study mode: plain, neutral header instead of the hero, so the tool doesn't oversell itself to participants -->
+<header class="study-head"><div class="wrap">
+  <h1>Prompt Redactor</h1>
+  <p>Check a prompt for personal information, review what was found, then create a version to paste into an AI assistant.</p>
+  <section class="study-bar" id="study-bar">
+    <b>Study session</b>
+    <label>Participant <input id="study-pid" value="P01" size="5"></label>
+    <label>Task <select id="study-task"></select></label>
+    <button id="study-load" class="btn primary sm">Start task</button>
+  </section>
+  <p id="study-instr" class="study-instr hidden"></p>
+</div></header>
+{% else %}
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">● Privacy check for AI prompts</span>
+      <h1>Share the prompt,<br><span class="grad">not the person.</span></h1>
+      <p class="lead">Find names, emails, phone numbers and IDs in your prompt before you paste it into ChatGPT, Gemini or Copilot.
+        Then swap them for placeholders or redact them, all on your own computer.</p>
+      <div class="cta">
+        <a class="btn primary" href="#workspace">Check a prompt →</a>
+        <a class="btn ghost" href="#features">How it works</a>
+      </div>
+      <div class="stats">
+        <div><b>8</b><span>types of personal info</span></div>
+        <div><b>0</b><span>outside network calls</span></div>
+        <div><b>2</b><span>ways to protect it</span></div>
+      </div>
+    </div>
+
+    <div class="showcase" aria-label="Example transformations">
+      <div class="bar"><i></i><i></i><i></i><span id="slide-name">Original prompt</span></div>
+      <div class="slides">
+        <div class="slide on">
+          <div class="label">Before</div>
+          <div class="text mono">Write a reference letter for <mark style="background:var(--PERSON)">Sarah Thompson</mark>. She can be reached at <mark style="background:var(--EMAIL_ADDRESS)">sarah.t@example.com</mark> or <mark style="background:var(--PHONE_NUMBER)">(519) 555-0142</mark>. Her manager <mark style="background:var(--PERSON)">Raj Patel</mark> approved it.</div>
+        </div>
+        <div class="slide">
+          <div class="label">Pseudonymized</div>
+          <div class="text mono">Write a reference letter for <span class="ph">[PERSON_1]</span>. She can be reached at <span class="ph">[EMAIL_1]</span> or <span class="ph">[PHONE_1]</span>. Her manager <span class="ph">[PERSON_2]</span> approved it.</div>
+        </div>
+        <div class="slide">
+          <div class="label">Fully redacted</div>
+          <div class="text mono">Write a reference letter for <span class="rd">[REDACTED]</span>. She can be reached at <span class="rd">[REDACTED]</span> or <span class="rd">[REDACTED]</span>. Her manager <span class="rd">[REDACTED]</span> approved it.</div>
+        </div>
+      </div>
+      <div class="dots"><button class="on" aria-label="Show original"></button><button aria-label="Show pseudonymized"></button><button aria-label="Show redacted"></button></div>
+    </div>
+  </div>
+</header>
 {% endif %}
-<footer class="wrap foot">CIS*6550 project prototype · synthetic data only during testing</footer>
-<script src="{{ url_for('static', filename='app.js') }}"></script>
+
+<main class="wrap">
+  <div class="section-head reveal" id="workspace">
+    <span class="eyebrow">Workspace</span>
+    <h2>Four steps to a safer prompt</h2>
+    <p>Nothing you type leaves this computer.</p>
+  </div>
+
+  <section class="workspace reveal">
+    <div class="stepper" role="tablist" aria-label="Steps">
+      <button class="on" data-go="0" role="tab"><span class="n">1</span><span class="t">Paste<small>Your prompt</small></span></button>
+      <button data-go="1" role="tab"><span class="n">2</span><span class="t">Review<small>What was found</small></span></button>
+      <button data-go="2" role="tab"><span class="n">3</span><span class="t">Copy<small>Safer prompt</small></span></button>
+      <button data-go="3" role="tab"><span class="n">4</span><span class="t">Restore<small>Optional</small></span></button>
+      <span class="ink"></span>
+    </div>
+    <div class="viewport"><div class="track">
+
+      <!-- 1. Input -->
+      <div class="panel" id="step-input">
+        <h3>Paste your prompt</h3>
+        <p class="hint">Write or paste what you were about to send to an AI assistant.</p>
+        <textarea id="input" rows="9" spellcheck="false"
+          placeholder="e.g. Sort these customer records by city: Sarah Thompson, sarah.t@example.com, (519) 824-4120 ..."></textarea>
+        <div class="actions">
+          <details class="advanced">
+            <summary>Advanced</summary>
+            <div class="adv-body">
+              <label>Detection method
+                <select id="mode">
+                  <option value="hybrid" selected>Hybrid (rules + NER)</option>
+                  <option value="rules">Rules only</option>
+                  <option value="ner">NER only</option>
+                </select>
+              </label>
+              <label>Sensitivity threshold <output id="th-out">0.40</output>
+                <input type="range" id="threshold" min="0.1" max="0.9" step="0.05" value="0.4">
+              </label>
+            </div>
+          </details>
+          <div class="right">
+            <button id="btn-sample" class="btn ghost sm">Load sample</button>
+            <button id="btn-check" class="btn primary">Check for personal info →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Review -->
+      <div class="panel" id="step-review">
+        <h3>Review what was found</h3>
+        <p class="hint">Click a highlight (or untick it in the list) to leave it unchanged. Click again to protect it.</p>
+        <div id="banner" class="alert"></div>
+        <div class="notice"><span class="i" aria-hidden="true">!</span><div><b>The tool can miss things, most often names.</b>
+          <span>Read the whole prompt before continuing. To protect something that isn't highlighted, select it with your mouse and choose a type.</span></div></div>
+        <div class="review">
+          <div id="highlighted" class="hl" aria-live="polite"></div>
+          <ul id="det-list" class="found"></ul>
+        </div>
+        <div id="add-bar" class="addbar hidden">
+          <span>Protect “<b id="sel-text"></b>” as</span>
+          <select id="add-type">
+            {% for e in entities %}<option value="{{ e }}">{{ labels[e] }}</option>{% endfor %}
+            <option value="LOCATION">{{ labels["LOCATION"] }}</option>
+            <option value="OTHER">{{ labels["OTHER"] }}</option>
+          </select>
+          <button id="btn-add" class="btn primary sm">Add</button>
+          <button id="btn-add-cancel" class="btn ghost sm">Cancel</button>
+        </div>
+
+        <div class="methods-title" id="method-title">How should the protected items be replaced?</div>
+        <div class="methods" role="radiogroup" aria-labelledby="method-title">
+          <label class="mcard"><input type="radio" name="method" value="pseudonymize" checked>
+            <div class="top"><span class="ic">#</span><b>Pseudonymize</b></div>
+            <p>Each item becomes a typed placeholder, used the same way every time it appears.</p>
+            <div class="ex">Sarah Thompson → [PERSON_1]</div>
+            <div class="tags"><span class="g">✓ Can be restored</span><span class="g">✓ AI can tell people apart</span>
+              <span class="w">✗ Shows item types</span><span class="w">✗ Shows number of people</span></div>
+          </label>
+          <label class="mcard"><input type="radio" name="method" value="redact">
+            <div class="top"><span class="ic">█</span><b>Fully redact</b></div>
+            <p>Every item becomes the same token, whatever it was.</p>
+            <div class="ex">Sarah Thompson → [REDACTED]</div>
+            <div class="tags"><span class="g">✓ Hides item types</span><span class="g">✓ Hides number of people</span>
+              <span class="w">✗ Can't be restored</span><span class="w">✗ AI can't tell people apart</span></div>
+          </label>
+        </div>
+        <details class="extra">
+          <summary>Extra option (not part of the main comparison)</summary>
+          <label class="mcard"><input type="radio" name="method" value="surrogate">
+            <div class="top"><span class="ic">~</span><b>Realistic fake values</b></div>
+            <p>Each item becomes a made-up value that can't belong to a real person (example.com emails, 555-01xx phones).</p>
+            <div class="ex">Sarah Thompson → Emily Clark</div>
+            <div class="tags"><span class="g">✓ Can be restored</span><span class="g">✓ Reads naturally</span>
+              <span class="w">✗ Shows item types</span><span class="w">✗ Fakes are hard to spot</span></div>
+          </label>
+        </details>
+        <div class="actions">
+          <button class="btn ghost" data-prev>← Back</button>
+          <div class="right"><button id="btn-redact" class="btn primary">Create safer prompt →</button></div>
+        </div>
+      </div>
+
+      <!-- 3. Output -->
+      <div class="panel" id="step-output">
+        <h3>Your safer prompt</h3>
+        <p id="method-note" class="hint"></p>
+        <div class="out-grid" id="out-grid">
+          <div>
+            <div class="lbl">Safer prompt · changes highlighted</div>
+            <div id="output" class="hl"></div>
+          </div>
+          <div id="key-wrap">
+            <div class="lbl">Replacement key · this tab only</div>
+            <table id="mapping" class="keytbl mono"></table>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn ghost" data-prev>← Back</button>
+          <div class="right">
+            <span id="copied" class="toast" aria-live="polite">✓ Copied</span>
+            <button id="btn-copy" class="btn">Copy prompt</button>
+            <button id="btn-to-restore" class="btn primary">Restore an answer →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Restore -->
+      <div class="panel" id="step-restore">
+        <h3>Put the details back into the AI's answer</h3>
+        <div id="restore-on">
+          <p class="hint">Paste the AI's reply. Placeholders (or fake values) are swapped back to the real ones in this tab; nothing is sent anywhere.
+            Anything that looks like a placeholder the AI changed is flagged.</p>
+          <div class="out-grid">
+            <div><div class="lbl">AI reply</div><textarea id="reply" rows="9" placeholder="Paste the AI's reply here"></textarea></div>
+            <div><div class="lbl">Restored reply</div><div id="restored" class="hl"><span class="muted">Restored reply appears here</span></div></div>
+          </div>
+          <div id="restore-status" class="status hidden" aria-live="polite"></div>
+        </div>
+        <div id="restore-off" class="empty hidden">A fully redacted prompt can't be restored: every item became the same [REDACTED] token.</div>
+        <div class="actions">
+          <button class="btn ghost" data-prev>← Back</button>
+          <div class="right">
+            <button id="btn-copy-restored" class="btn">Copy restored reply</button>
+            <button id="btn-restart" class="btn">Start over</button>
+          </div>
+        </div>
+      </div>
+
+    </div></div>
+  </section>
+
+  {% if study %}
+  <section class="study-finish hidden" id="study-finish">
+    <p class="hint">When you have pasted the safer prompt into the AI assistant (and restored its answer, if you used pseudonymization), click Finish.</p>
+    <div class="actions">
+      <button id="study-done" class="btn primary">Finish task</button>
+      <span id="study-saved" class="ok-text hidden">Saved. Please return to the moderator.</span>
+    </div>
+  </section>
+  {% else %}
+  <section class="features" id="features">
+    <div class="feat reveal"><div class="ic">⌂</div><h4>Stays on your computer</h4><p>Detection and replacement run locally. No AI service, analytics or CDN is contacted.</p></div>
+    <div class="feat reveal"><div class="ic">◎</div><h4>Rules + language model</h4><p>Pattern rules for emails, SINs and cards, plus spaCy NER for names. You review everything.</p></div>
+    <div class="feat reveal"><div class="ic">↺</div><h4>Undo the placeholders</h4><p>With pseudonymization, paste the AI's answer back and get the real details restored.</p></div>
+  </section>
+  {% endif %}
+</main>
+
+<footer><div class="wrap">Synthetic data only during testing</div></footer>
+
+{% if study %}<script>window.STUDY = true;</script>{% endif %}
+<script src="{{ url_for('static', filename='app.js', v=v) }}"></script>
 </body>
 </html>
